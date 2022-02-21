@@ -16,6 +16,10 @@ limitations under the License.
 
 package main
 
+import (
+	"flag"
+)
+
 // Messages
 const (
 	versionMessage                 = "CCX Notification Writer version 1.0"
@@ -43,3 +47,14 @@ const (
 	// ExitStatusKafkaError is returned in case of any Kafka-related error
 	ExitStatusKafkaError
 )
+
+// main function is entry point to the Kafka monitor service.
+func main() {
+	var cliFlags CliFlags
+
+	// define and parse all command line options
+	flag.BoolVar(&cliFlags.ShowVersion, "version", false, "show version")
+	flag.BoolVar(&cliFlags.ShowAuthors, "authors", false, "show authors")
+	flag.BoolVar(&cliFlags.ShowConfiguration, "show-configuration", false, "show configuration")
+	flag.BoolVar(&cliFlags.CheckConnectionToKafka, "check-kafka", false, "check connection to Kafka")
+}
