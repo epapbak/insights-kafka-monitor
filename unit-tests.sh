@@ -25,3 +25,5 @@ function run_unit_tests() {
 }
 
 run_unit_tests
+
+go tool cover -func=coverage.out
