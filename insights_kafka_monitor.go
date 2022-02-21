@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -26,12 +27,13 @@ import (
 
 // Messages
 const (
-	versionMessage                 = "CCX Notification Writer version 1.0"
+	versionMessage                 = "Insights Kafka monitor version 1.0"
 	authorsMessage                 = "Pavel Tisnovsky, Red Hat Inc."
 	connectionToBrokerMessage      = "Connection to broker"
 	operationFailedMessage         = "Operation failed"
 	notConnectedToBrokerMessage    = "Not connected to broker"
 	brokerConnectionSuccessMessage = "Broker connection OK"
+	brokerAddress                  = "Broker address"
 )
 
 // Configuration-related constants
@@ -51,6 +53,57 @@ const (
 	// ExitStatusKafkaError is returned in case of any Kafka-related error
 	ExitStatusKafkaError
 )
+
+// showVersion function displays version information.
+func showVersion() {
+	fmt.Println(versionMessage)
+}
+
+// showAuthors function displays information about authors.
+func showAuthors() {
+	fmt.Println(authorsMessage)
+}
+
+// showConfiguration function displays actual configuration.
+func showConfiguration(config ConfigStruct) {
+	brokerConfig := GetBrokerConfiguration(config)
+	log.Info().
+		Str(brokerAddress, brokerConfig.Address).
+		Str("Topic", brokerConfig.Topic).
+		Str("Group", brokerConfig.Group).
+		Bool("Enabled", brokerConfig.Enabled).
+		Msg("Broker configuration")
+
+	loggingConfig := GetLoggingConfiguration(config)
+	log.Info().
+		Str("Level", loggingConfig.LogLevel).
+		Bool("Pretty colored debug logging", loggingConfig.Debug).
+		Msg("Logging configuration")
+}
+
+// doSelectedOperation function perform operation selected on command line.
+// When no operation is specified, the Insights Kafka monitor service is
+// started instead.
+func doSelectedOperation(configuration ConfigStruct, cliFlags CliFlags) (int, error) {
+	switch {
+	case cliFlags.ShowVersion:
+		showVersion()
+		return ExitStatusOK, nil
+	case cliFlags.ShowAuthors:
+		showAuthors()
+		return ExitStatusOK, nil
+	case cliFlags.ShowConfiguration:
+		showConfiguration(configuration)
+		return ExitStatusOK, nil
+	case cliFlags.CheckConnectionToKafka:
+		// return tryToConnectToKafka(configuration)
+	default:
+		// exitCode, err := startService(configuration)
+		// return exitCode, err
+	}
+	// this can not happen: return ExitStatusOK, nil
+	return ExitStatusOK, nil
+}
 
 // main function is entry point to the Kafka monitor service.
 func main() {
@@ -74,6 +127,14 @@ func main() {
 	}
 
 	log.Debug().Msg("Started")
+
+	// perform selected operation
+	exitStatus, err := doSelectedOperation(config, cliFlags)
+	if err != nil {
+		log.Err(err).Msg("Do selected operation")
+		os.Exit(exitStatus)
+		return
+	}
 
 	log.Debug().Msg("Finished")
 }
