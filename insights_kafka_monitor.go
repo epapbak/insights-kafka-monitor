@@ -18,6 +18,10 @@ package main
 
 import (
 	"flag"
+	"os"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Messages
@@ -57,4 +61,19 @@ func main() {
 	flag.BoolVar(&cliFlags.ShowAuthors, "authors", false, "show authors")
 	flag.BoolVar(&cliFlags.ShowConfiguration, "show-configuration", false, "show configuration")
 	flag.BoolVar(&cliFlags.CheckConnectionToKafka, "check-kafka", false, "check connection to Kafka")
+	flag.Parse()
+
+	// config has exactly the same structure as *.toml file
+	config, err := LoadConfiguration(configFileEnvVariableName, defaultConfigFileName)
+	if err != nil {
+		log.Err(err).Msg("Load configuration")
+	}
+
+	if config.Logging.Debug {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	log.Debug().Msg("Started")
+
+	log.Debug().Msg("Finished")
 }
