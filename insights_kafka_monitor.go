@@ -192,7 +192,7 @@ func doSelectedOperation(configuration ConfigStruct, cliFlags CliFlags) (int, er
 		return exitCode, err
 	}
 	// this can not happen: return ExitStatusOK, nil
-	return ExitStatusOK, nil
+	// return ExitStatusOK, nil
 }
 
 // main function is entry point to the Kafka monitor service.
