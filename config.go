@@ -67,6 +67,7 @@ const (
 type ConfigStruct struct {
 	Broker  BrokerConfiguration  `mapstructure:"broker"  toml:"broker"`
 	Logging LoggingConfiguration `mapstructure:"logging" toml:"logging"`
+	Output  OutputConfiguration  `mapstructure:"output"  toml:"output"`
 }
 
 // LoggingConfiguration represents configuration for logging in general
@@ -95,6 +96,10 @@ type BrokerConfiguration struct {
 	Group string `mapstructure:"group" toml:"group"`
 	// Enabled is set to true if Kafka consumer is to be enabled
 	Enabled bool `mapstructure:"enabled" toml:"enabled"`
+}
+
+type OutputConfiguration struct {
+	Verbose bool `mapstructure:"verbose" toml:"verbose"`
 }
 
 // LoadConfiguration loads configuration from defaultConfigFile, file set in
@@ -173,4 +178,9 @@ func GetLoggingConfiguration(config ConfigStruct) LoggingConfiguration {
 // GetBrokerConfiguration returns broker configuration
 func GetBrokerConfiguration(config ConfigStruct) BrokerConfiguration {
 	return config.Broker
+}
+
+// GetOutputConfiguration returns output configuration
+func GetOutputConfiguration(config ConfigStruct) OutputConfiguration {
+	return config.Output
 }
