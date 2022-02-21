@@ -1,0 +1,9 @@
+[broker]
+address = "localhost:9092"
+topic = "ccx.ocp.results"
+group = "test-consumer-group"
+enabled = true
+
+[logging]
+debug = true
+log_level = ""
