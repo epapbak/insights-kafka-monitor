@@ -36,6 +36,11 @@ const (
 	notConnectedToBrokerMessage    = "Not connected to broker"
 	brokerConnectionSuccessMessage = "Broker connection OK"
 	brokerAddressMessage           = "Broker address"
+	brokerConfigurationMessage     = "Broker configuration"
+	topic                          = "Topic"
+	group                          = "Group"
+	enabled                        = "Enabled"
+	verbose                        = "Verbose"
 )
 
 // Configuration-related constants
@@ -71,10 +76,10 @@ func showConfiguration(config ConfigStruct) {
 	brokerConfig := GetBrokerConfiguration(config)
 	log.Info().
 		Str(brokerAddressMessage, brokerConfig.Address).
-		Str("Topic", brokerConfig.Topic).
-		Str("Group", brokerConfig.Group).
-		Bool("Enabled", brokerConfig.Enabled).
-		Msg("Broker configuration")
+		Str(topic, brokerConfig.Topic).
+		Str(group, brokerConfig.Group).
+		Bool(enabled, brokerConfig.Enabled).
+		Msg(brokerConfigurationMessage)
 
 	loggingConfig := GetLoggingConfiguration(config)
 	log.Info().
@@ -84,7 +89,7 @@ func showConfiguration(config ConfigStruct) {
 
 	outputConfig := GetOutputConfiguration(config)
 	log.Info().
-		Bool("Verbose", outputConfig.Verbose).
+		Bool(verbose, outputConfig.Verbose).
 		Msg("Output configuration")
 }
 
@@ -129,21 +134,21 @@ func startService(config ConfigStruct) (int, error) {
 	// prepare broker
 	brokerConfiguration := GetBrokerConfiguration(config)
 
-	verbose := GetOutputConfiguration(config).Verbose
+	verboseMode := GetOutputConfiguration(config).Verbose
 
 	// log the config
 	log.Info().
 		Str(brokerAddressMessage, brokerConfiguration.Address).
-		Str("Topic", brokerConfiguration.Topic).
-		Str("Group", brokerConfiguration.Group).
-		Bool("Enabled", brokerConfiguration.Enabled).
-		Bool("Verbose", verbose).
-		Msg("Broker configuration")
+		Str(topic, brokerConfiguration.Topic).
+		Str(group, brokerConfiguration.Group).
+		Bool(enabled, brokerConfiguration.Enabled).
+		Bool(verbose, verboseMode).
+		Msg(brokerConfigurationMessage)
 
 	// if broker is disabled, simply don't start it
 	if brokerConfiguration.Enabled {
 		log.Info().Msg("Broker is enabled, about to start it")
-		err := startConsumer(brokerConfiguration, verbose)
+		err := startConsumer(brokerConfiguration, verboseMode)
 		if err != nil {
 			log.Error().Err(err)
 			return ExitStatusConsumerError, err
@@ -187,7 +192,7 @@ func doSelectedOperation(configuration ConfigStruct, cliFlags CliFlags) (int, er
 		return exitCode, err
 	}
 	// this can not happen: return ExitStatusOK, nil
-	return ExitStatusOK, nil
+	// return ExitStatusOK, nil
 }
 
 // main function is entry point to the Kafka monitor service.

@@ -98,6 +98,7 @@ type BrokerConfiguration struct {
 	Enabled bool `mapstructure:"enabled" toml:"enabled"`
 }
 
+// OutputConfiguration configures which log messages to use
 type OutputConfiguration struct {
 	Verbose bool `mapstructure:"verbose" toml:"verbose"`
 }
