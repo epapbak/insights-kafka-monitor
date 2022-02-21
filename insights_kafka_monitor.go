@@ -35,7 +35,7 @@ const (
 	operationFailedMessage         = "Operation failed"
 	notConnectedToBrokerMessage    = "Not connected to broker"
 	brokerConnectionSuccessMessage = "Broker connection OK"
-	brokerAddress                  = "Broker address"
+	brokerAddressMessage           = "Broker address"
 )
 
 // Configuration-related constants
@@ -70,7 +70,7 @@ func showAuthors() {
 func showConfiguration(config ConfigStruct) {
 	brokerConfig := GetBrokerConfiguration(config)
 	log.Info().
-		Str(brokerAddress, brokerConfig.Address).
+		Str(brokerAddressMessage, brokerConfig.Address).
 		Str("Topic", brokerConfig.Topic).
 		Str("Group", brokerConfig.Group).
 		Bool("Enabled", brokerConfig.Enabled).
@@ -81,6 +81,11 @@ func showConfiguration(config ConfigStruct) {
 		Str("Level", loggingConfig.LogLevel).
 		Bool("Pretty colored debug logging", loggingConfig.Debug).
 		Msg("Logging configuration")
+
+	outputConfig := GetOutputConfiguration(config)
+	log.Info().
+		Bool("Verbose", outputConfig.Verbose).
+		Msg("Output configuration")
 }
 
 // tryToConnectToKafka function just tries connection to Kafka broker
@@ -90,7 +95,7 @@ func tryToConnectToKafka(config ConfigStruct) (int, error) {
 	// prepare broker configuration
 	brokerConfiguration := GetBrokerConfiguration(config)
 
-	log.Info().Str("broker address", brokerConfiguration.Address).Msg(brokerAddress)
+	log.Info().Str(brokerAddressMessage, brokerConfiguration.Address).Msg(brokerAddressMessage)
 
 	// create new broker instance (w/o any checks)
 	broker := sarama.NewBroker(brokerConfiguration.Address)
@@ -119,6 +124,48 @@ func tryToConnectToKafka(config ConfigStruct) (int, error) {
 	return ExitStatusOK, nil
 }
 
+// startService function tries to start the Kafka monitor service.
+func startService(config ConfigStruct) (int, error) {
+	// prepare broker
+	brokerConfiguration := GetBrokerConfiguration(config)
+
+	verbose := GetOutputConfiguration(config).Verbose
+
+	// log the config
+	log.Info().
+		Str(brokerAddressMessage, brokerConfiguration.Address).
+		Str("Topic", brokerConfiguration.Topic).
+		Str("Group", brokerConfiguration.Group).
+		Bool("Enabled", brokerConfiguration.Enabled).
+		Bool("Verbose", verbose).
+		Msg("Broker configuration")
+
+	// if broker is disabled, simply don't start it
+	if brokerConfiguration.Enabled {
+		log.Info().Msg("Broker is enabled, about to start it")
+		err := startConsumer(brokerConfiguration, verbose)
+		if err != nil {
+			log.Error().Err(err)
+			return ExitStatusConsumerError, err
+		}
+	} else {
+		log.Info().Msg("Broker is disabled, not starting it")
+	}
+
+	return ExitStatusOK, nil
+}
+
+// startConsumer function starts the Kafka consumer.
+func startConsumer(config BrokerConfiguration, verbose bool) error {
+	consumer, err := NewConsumer(config, verbose)
+	if err != nil {
+		log.Error().Err(err).Msg("Construct broker failed")
+		return err
+	}
+	consumer.Serve()
+	return nil
+}
+
 // doSelectedOperation function perform operation selected on command line.
 // When no operation is specified, the Insights Kafka monitor service is
 // started instead.
@@ -136,8 +183,8 @@ func doSelectedOperation(configuration ConfigStruct, cliFlags CliFlags) (int, er
 	case cliFlags.CheckConnectionToKafka:
 		return tryToConnectToKafka(configuration)
 	default:
-		// exitCode, err := startService(configuration)
-		// return exitCode, err
+		exitCode, err := startService(configuration)
+		return exitCode, err
 	}
 	// this can not happen: return ExitStatusOK, nil
 	return ExitStatusOK, nil
