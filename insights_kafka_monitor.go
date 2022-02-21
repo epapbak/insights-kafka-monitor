@@ -23,6 +23,8 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/Shopify/sarama"
 )
 
 // Messages
@@ -81,6 +83,42 @@ func showConfiguration(config ConfigStruct) {
 		Msg("Logging configuration")
 }
 
+// tryToConnectToKafka function just tries connection to Kafka broker
+func tryToConnectToKafka(config ConfigStruct) (int, error) {
+	log.Info().Msg("Checking connection to Kafka")
+
+	// prepare broker configuration
+	brokerConfiguration := GetBrokerConfiguration(config)
+
+	log.Info().Str("broker address", brokerConfiguration.Address).Msg(brokerAddress)
+
+	// create new broker instance (w/o any checks)
+	broker := sarama.NewBroker(brokerConfiguration.Address)
+
+	// check broker connection
+	err := broker.Open(nil)
+	if err != nil {
+		log.Error().Err(err).Msg(connectionToBrokerMessage)
+		return ExitStatusKafkaError, err
+	}
+
+	// check if connection remain
+	connected, err := broker.Connected()
+	if err != nil {
+		log.Error().Err(err).Msg(connectionToBrokerMessage)
+		return ExitStatusKafkaError, err
+	}
+	if !connected {
+		log.Error().Err(err).Msg(notConnectedToBrokerMessage)
+		return ExitStatusConsumerError, err
+	}
+
+	log.Info().Msg(brokerConnectionSuccessMessage)
+
+	// everything seems to be ok
+	return ExitStatusOK, nil
+}
+
 // doSelectedOperation function perform operation selected on command line.
 // When no operation is specified, the Insights Kafka monitor service is
 // started instead.
@@ -96,7 +134,7 @@ func doSelectedOperation(configuration ConfigStruct, cliFlags CliFlags) (int, er
 		showConfiguration(configuration)
 		return ExitStatusOK, nil
 	case cliFlags.CheckConnectionToKafka:
-		// return tryToConnectToKafka(configuration)
+		return tryToConnectToKafka(configuration)
 	default:
 		// exitCode, err := startService(configuration)
 		// return exitCode, err
