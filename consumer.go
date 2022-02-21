@@ -280,7 +280,7 @@ func (consumer *KafkaConsumer) ProcessMessage(msg *sarama.ConsumerMessage) error
 	log.Info().Int("length", len(value)).Msg("Message length")
 
 	if consumer.Verbose {
-		log.Info().Str("message content", string(value)).Msg("message content")
+		log.Info().Str("content", string(value)).Msg("Message value")
 	}
 
 	return nil
