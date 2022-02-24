@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-// Declaration of data types used by Kafka monitor service.
+// Declaration of data types used by Insights Kafka monitor service.
 
 // CliFlags represents structure holding all command line arguments and flags.
 type CliFlags struct {
