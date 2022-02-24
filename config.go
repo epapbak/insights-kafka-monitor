@@ -172,16 +172,16 @@ func LoadConfiguration(configFileEnvVariableName, defaultConfigFile string) (Con
 }
 
 // GetLoggingConfiguration returns logging configuration
-func GetLoggingConfiguration(config ConfigStruct) LoggingConfiguration {
+func GetLoggingConfiguration(config *ConfigStruct) LoggingConfiguration {
 	return config.Logging
 }
 
 // GetBrokerConfiguration returns broker configuration
-func GetBrokerConfiguration(config ConfigStruct) BrokerConfiguration {
+func GetBrokerConfiguration(config *ConfigStruct) BrokerConfiguration {
 	return config.Broker
 }
 
 // GetOutputConfiguration returns output configuration
-func GetOutputConfiguration(config ConfigStruct) OutputConfiguration {
+func GetOutputConfiguration(config *ConfigStruct) OutputConfiguration {
 	return config.Output
 }
