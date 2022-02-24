@@ -119,7 +119,7 @@ func TestLoadBrokerConfiguration(t *testing.T) {
 	config, err := main.LoadConfiguration(envVar, "")
 	assert.Nil(t, err, "Failed loading configuration file from env var!")
 
-	brokerCfg := main.GetBrokerConfiguration(config)
+	brokerCfg := main.GetBrokerConfiguration(&config)
 
 	assert.Equal(t, "localhost:29092", brokerCfg.Address)
 	assert.Equal(t, "ccx_test_notifications", brokerCfg.Topic)
@@ -132,7 +132,7 @@ func TestLoadLoggingConfiguration(t *testing.T) {
 	config, err := main.LoadConfiguration(envVar, "")
 	assert.Nil(t, err, "Failed loading configuration file from env var!")
 
-	loggingCfg := main.GetLoggingConfiguration(config)
+	loggingCfg := main.GetLoggingConfiguration(&config)
 
 	assert.Equal(t, true, loggingCfg.Debug)
 	assert.Equal(t, "", loggingCfg.LogLevel)
@@ -145,7 +145,7 @@ func TestLoadOutputConfiguration(t *testing.T) {
 	config, err := main.LoadConfiguration(envVar, "")
 	assert.Nil(t, err, "Failed loading configuration file from env var!")
 
-	outputCfg := main.GetOutputConfiguration(config)
+	outputCfg := main.GetOutputConfiguration(&config)
 
 	assert.Equal(t, true, outputCfg.Verbose)
 }

@@ -73,7 +73,7 @@ func showAuthors() {
 
 // showConfiguration function displays actual configuration.
 func showConfiguration(config ConfigStruct) {
-	brokerConfig := GetBrokerConfiguration(config)
+	brokerConfig := GetBrokerConfiguration(&config)
 	log.Info().
 		Str(brokerAddressMessage, brokerConfig.Address).
 		Str(topic, brokerConfig.Topic).
@@ -81,13 +81,13 @@ func showConfiguration(config ConfigStruct) {
 		Bool(enabled, brokerConfig.Enabled).
 		Msg(brokerConfigurationMessage)
 
-	loggingConfig := GetLoggingConfiguration(config)
+	loggingConfig := GetLoggingConfiguration(&config)
 	log.Info().
 		Str("Level", loggingConfig.LogLevel).
 		Bool("Pretty colored debug logging", loggingConfig.Debug).
 		Msg("Logging configuration")
 
-	outputConfig := GetOutputConfiguration(config)
+	outputConfig := GetOutputConfiguration(&config)
 	log.Info().
 		Bool(verbose, outputConfig.Verbose).
 		Msg("Output configuration")
@@ -98,7 +98,7 @@ func tryToConnectToKafka(config ConfigStruct) (int, error) {
 	log.Info().Msg("Checking connection to Kafka")
 
 	// prepare broker configuration
-	brokerConfiguration := GetBrokerConfiguration(config)
+	brokerConfiguration := GetBrokerConfiguration(&config)
 
 	log.Info().Str(brokerAddressMessage, brokerConfiguration.Address).Msg(brokerAddressMessage)
 
@@ -132,9 +132,9 @@ func tryToConnectToKafka(config ConfigStruct) (int, error) {
 // startService function tries to start the Kafka monitor service.
 func startService(config ConfigStruct) (int, error) {
 	// prepare broker
-	brokerConfiguration := GetBrokerConfiguration(config)
+	brokerConfiguration := GetBrokerConfiguration(&config)
 
-	verboseMode := GetOutputConfiguration(config).Verbose
+	verboseMode := GetOutputConfiguration(&config).Verbose
 
 	// log the config
 	log.Info().
