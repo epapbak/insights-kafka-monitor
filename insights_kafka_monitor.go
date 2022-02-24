@@ -32,7 +32,6 @@ const (
 	versionMessage                 = "Insights Kafka monitor version 1.0"
 	authorsMessage                 = "Pavel Tisnovsky, Red Hat Inc."
 	connectionToBrokerMessage      = "Connection to broker"
-	operationFailedMessage         = "Operation failed"
 	notConnectedToBrokerMessage    = "Not connected to broker"
 	brokerConnectionSuccessMessage = "Broker connection OK"
 	brokerAddressMessage           = "Broker address"
@@ -210,6 +209,7 @@ func main() {
 	config, err := LoadConfiguration(configFileEnvVariableName, defaultConfigFileName)
 	if err != nil {
 		log.Err(err).Msg("Load configuration")
+		os.Exit(ExitStatusError)
 	}
 
 	if config.Logging.Debug {
