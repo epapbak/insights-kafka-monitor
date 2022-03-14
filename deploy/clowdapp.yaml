@@ -68,10 +68,10 @@ objects:
               name: insights-kafka-monitor-config
           resources:
             requests:
-              cpu: 500m
+              cpu: 100m
               memory: 512Mi
             limits:
-              cpu: 1000m
+              cpu: 200m
               memory: 1024Mi
 
 - kind: ConfigMap
