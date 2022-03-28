@@ -98,7 +98,7 @@ parameters:
   required: true
 - description: ClowdEnv Name
   name: ENV_NAME
-  requred: true
+  required: true
 - description: Minimum number of pods to use when autoscaling is enabled
   name: MIN_REPLICAS
   value: '1'
