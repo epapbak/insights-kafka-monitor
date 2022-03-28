@@ -93,6 +93,7 @@ objects:
 parameters:
 - description: Image name
   name: IMAGE
+  value: quay.io/cloudservices/ccx-kafka-monitor
 - description: Image tag
   name: IMAGE_TAG
   required: true
