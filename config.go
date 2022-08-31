@@ -52,6 +52,7 @@ import (
 
 	"path/filepath"
 
+	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -177,6 +178,11 @@ func LoadConfiguration(configFileEnvVariableName, defaultConfigFile string) (Con
 		return config, err
 	}
 
+	if err := updateConfigFromClowder(&config); err != nil {
+		fmt.Println("error loading clowder configuration")
+		return config, err
+	}
+
 	// everything's should be ok
 	return config, nil
 }
@@ -194,4 +200,38 @@ func GetBrokerConfiguration(config *ConfigStruct) BrokerConfiguration {
 // GetOutputConfiguration returns output configuration
 func GetOutputConfiguration(config *ConfigStruct) OutputConfiguration {
 	return config.Output
+}
+
+// updateConfigFromClowder updates the current config with the values defined in clowder
+func updateConfigFromClowder(c *ConfigStruct) error {
+	if !clowder.IsClowderEnabled() || clowder.LoadedConfig == nil {
+		fmt.Println("Clowder is disabled")
+		return nil
+	}
+
+	fmt.Println("Clowder is enabled")
+	if clowder.LoadedConfig.Kafka == nil {
+		fmt.Println("No Kafka configuration available in Clowder, using default one")
+	} else {
+		broker := clowder.LoadedConfig.Kafka.Brokers[0]
+		// port can be empty in clowder, so taking it into account
+		if broker.Port != nil {
+			c.Broker.Address = fmt.Sprintf("%s:%d", broker.Hostname, *broker.Port)
+		} else {
+			c.Broker.Address = broker.Hostname
+		}
+
+		// SSL config
+		if broker.Authtype != nil {
+			c.Broker.SaslUsername = *broker.Sasl.Username
+			c.Broker.SaslPassword = *broker.Sasl.Password
+			c.Broker.SaslMechanism = *broker.Sasl.SaslMechanism
+
+			if caPath, err := clowder.LoadedConfig.KafkaCa(broker); err == nil {
+				c.Broker.CertPath = caPath
+			}
+		}
+	}
+
+	return nil
 }
