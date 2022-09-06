@@ -61,6 +61,12 @@ import (
 const (
 	filenameAttribute               = "filename"
 	parsingConfigurationFileMessage = "parsing configuration file"
+
+	noKafkaClowder    = "no Kafka configuration available in Clowder, using default one"
+	noBrokerConfig    = "warning: no broker configurations found in clowder config"
+	noSaslConfig      = "warning: SASL configuration is missing"
+	noTopicMapping    = "warning: no kafka mapping found for topic %s"
+	topicMappingError = "warning: an error occurred when applying new topics"
 )
 
 // ConfigStruct is a structure holding the whole notification service
@@ -211,26 +217,47 @@ func updateConfigFromClowder(c *ConfigStruct) error {
 
 	fmt.Println("Clowder is enabled")
 	if clowder.LoadedConfig.Kafka == nil {
-		fmt.Println("No Kafka configuration available in Clowder, using default one")
+		fmt.Println(noKafkaClowder)
 	} else {
-		broker := clowder.LoadedConfig.Kafka.Brokers[0]
-		// port can be empty in clowder, so taking it into account
-		if broker.Port != nil {
-			c.Broker.Address = fmt.Sprintf("%s:%d", broker.Hostname, *broker.Port)
+		if len(clowder.LoadedConfig.Kafka.Brokers) > 0 {
+			broker := clowder.LoadedConfig.Kafka.Brokers[0]
+			// port can be empty in clowder, so taking it into account
+			if broker.Port != nil {
+				c.Broker.Address = fmt.Sprintf("%s:%d", broker.Hostname, *broker.Port)
+			} else {
+				c.Broker.Address = broker.Hostname
+			}
+
+			// SSL config
+			if broker.Authtype != nil {
+				c.Broker.SaslUsername = *broker.Sasl.Username
+				c.Broker.SaslPassword = *broker.Sasl.Password
+				c.Broker.SaslMechanism = *broker.Sasl.SaslMechanism
+				c.Broker.SecurityProtocol = *broker.Sasl.SecurityProtocol
+				if caPath, err := clowder.LoadedConfig.KafkaCa(broker); err == nil {
+					c.Broker.CertPath = caPath
+				}
+			} else {
+				fmt.Println(noSaslConfig)
+			}
 		} else {
-			c.Broker.Address = broker.Hostname
+			fmt.Println(noBrokerConfig)
 		}
 
-		// SSL config
-		if broker.Authtype != nil {
-			c.Broker.SaslUsername = *broker.Sasl.Username
-			c.Broker.SaslPassword = *broker.Sasl.Password
-			c.Broker.SaslMechanism = *broker.Sasl.SaslMechanism
-			c.Broker.SecurityProtocol = *broker.Sasl.SecurityProtocol
-			if caPath, err := clowder.LoadedConfig.KafkaCa(broker); err == nil {
-				c.Broker.CertPath = caPath
-			}
+		if err := updateTopicsMapping(c); err != nil {
+			fmt.Println(topicMappingError)
 		}
+	}
+
+	return nil
+}
+
+func updateTopicsMapping(c *ConfigStruct) error {
+	// Updating topics from clowder mapping if available
+	if topicCfg, ok := clowder.KafkaTopics[c.Broker.Topic]; ok {
+		c.Broker.Topic = topicCfg.Name
+	} else {
+		fmt.Printf(noTopicMapping, c.Broker.Topic)
 	}
 
 	return nil
