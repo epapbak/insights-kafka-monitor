@@ -23,9 +23,13 @@ RUN umask 0022 && \
     make build && \
     chmod a+x insights-kafka-monitor
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi8/ubi-micro:latest
 
 COPY --from=builder /opt/app-root/src/insights-kafka-monitor .
+
+# copy the certificates from builder image
+COPY --from=builder /etc/ssl /etc/ssl
+COPY --from=builder /etc/pki /etc/pki
 
 USER 1001
 
